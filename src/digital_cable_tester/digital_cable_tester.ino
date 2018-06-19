@@ -1,38 +1,29 @@
-// =============================================================================
-//
-// Digital Cable Tester V 1.0
-//
-// ---------------------------
-//
-// CERN - Geneva(CH).
-//
-// Created by Joel Daricou, March 2017.
-//
-// ---------------------------
-//
-// Developed and tested on Arduino MEGA 2560.
-//
-// ---------------------------
-//
-// This program allows you to test the Burndy connectors 50 pin thanks to 'use of the proper master system (Arduino Mega 2560 + shield) and Slave.
-//
-// The pins depart from number 1 up to 50:
-// The odd numbers are used as the reading pin.
-// The even numbers are used as enable pin.
-//
-// ---------------------------
-//
-// Info:  Pin 0, 1, 50, 51, 52, 53 Not used for Burndy
-//        Pin 68 = A14
-//        Pin 69 = A15
-//        Pin 62 = A8   gnd Pin
-//        Pin 13 = remove a led on arduino pcb
-//
-// Scheme:
-//
-// References:
-//
-// =============================================================================
+/**
+ ******************************************************************************
+   @file    Digital Cable Tester
+   @date    CERN - Geneva(CH), March 2017.
+   @author  Joel Daricou  <joel.daricou@cern.ch>
+   @brief   This program allows you to test the Burndy connectors 50 pin thanks to 'use of the proper master system (Arduino Mega 2560 + shield) and Slave.
+
+            The pins depart from number 1 up to 50:
+            The odd numbers are used as the reading pin.
+            The even numbers are used as enable pin.
+
+ ******************************************************************************
+   Board:
+    - Developed and tested on Arduino MEGA 2560.
+
+   Info programming:
+    - Arduino IDE Download:                               https://www.arduino.cc/en/Main/Software
+    - Arduino Mega Official page:                         https://store.arduino.cc/arduino-mega-2560-rev3
+    - Arduino LCD Screen:                                 https://store.arduino.cc/arduino-lcd-screen
+
+   References C++:
+
+   Scheme:
+
+ ******************************************************************************
+ */
 
 #include <TFT.h>
 #include <SPI.h>
@@ -83,8 +74,7 @@ boolean multipleContacts = false;
 byte shortCircuitGnd = NOT_CONNECTED;
 
 // *** SETUP *** ===============================================================
-void setup(void)
-{
+void setup(void) {
   //init serial comunication
   Serial.begin(9600);
 
@@ -100,8 +90,7 @@ void setup(void)
   // init pin GND
   pinMode(gndPin, INPUT_PULLUP);
   // init pin burndy
-  for (byte i = 0; i < nPin; i++)
-  {
+  for (byte i = 0; i < nPin; i++) {
     pinMode(pinSelect[i], INPUT_PULLUP);
   }
 
@@ -137,8 +126,7 @@ void setup(void)
   delay(500);
 }
 // *** LOOP *** ================================================================
-void loop(void)
-{
+void loop(void) {
   char printCharValue[4];
   String convertToString;
 
@@ -168,8 +156,7 @@ void loop(void)
   // ----------------------------------------------------------------
   // wait command
   // if you press the button A
-  if (inputEvent())
-  {
+  if (inputEvent()) {
     // Test Page ----------------------------------------------------
     Serial.println("--> START CABLE TEST ");
     Serial.println("");
@@ -192,8 +179,7 @@ void loop(void)
     // --------------------------------------------------------------
 
     // start test cable: if the test is ok
-    if (testCable())
-    {
+    if (testCable()) {
       Serial.println("-> TEST: OK");
       Serial.println("");
       // Test Page OK -------------------------------------------------
@@ -210,8 +196,7 @@ void loop(void)
       delay(500);
     }
     // if the test is bad
-    else
-    {
+    else {
       Serial.println("-> TEST: ERROR");
       Serial.println("");
       // Test Page ERROR ----------------------------------------------
@@ -251,11 +236,9 @@ void loop(void)
     Serial.println("--> END CABLE TEST");
     Serial.println("");
   }
-  else
-  {
+  else {
     // change the number of pin to test
-    if (selectConnector < 11)
-    {
+    if (selectConnector < 11) {
       // for now not enabled
       //selectConnector += 1;
     }
@@ -267,8 +250,7 @@ void loop(void)
   }
 }
 // *** button continue *** =====================================================
-void buttonContinue(void)
-{
+void buttonContinue(void) {
   Serial.println("--> CONTINUE ? (y/n)");
   Serial.println("");
   myScreen.fill(255, 255, 255);
@@ -277,36 +259,29 @@ void buttonContinue(void)
   myScreen.text("CONTINUE", 34, 106);
 }
 // *** inputEvent* ** ==========================================================
-boolean inputEvent()
-{
+boolean inputEvent() {
   char commandData = 0;
   //wait for command
-  while (1)
-  {
-    if (Serial.available())
-    {
+  while (1) {
+    if (Serial.available()) {
       commandData = Serial.read();
     }
-    if (((commandData == 'y') || (commandData == 'Y')) || (digitalRead(buttonA) == 0))
-    {
+    if (((commandData == 'y') || (commandData == 'Y')) || (digitalRead(buttonA) == 0)) {
       return true;
     }
-    else if (((commandData == 'n') || (commandData == 'N')) || (digitalRead(buttonB) == 0))
-    {
+    else if (((commandData == 'n') || (commandData == 'N')) || (digitalRead(buttonB) == 0)) {
       return false;
     }
   }
 }
 // *** testCable *** ===========================================================
-boolean testCable()
-{
+boolean testCable() {
   // initialize variables and pins
   boolean testResult = true;
   multipleContacts = false;
   shortCircuitGnd = NOT_CONNECTED;
 
-  for (byte i = 0; i < nPin; i++)
-  {
+  for (byte i = 0; i < nPin; i++) {
     finalValue[0][i] = NOT_CONNECTED;
     finalValue[1][i] = NOT_CONNECTED;
     pinValue[i] = 1;
@@ -314,16 +289,14 @@ boolean testCable()
   }
 
   // test ground insulation
-  for (byte i = 0; i < nPin; i++)
-  {
+  for (byte i = 0; i < nPin; i++) {
     pinMode(pinSelect[i], OUTPUT);
     digitalWrite(pinSelect[i], LOW);
 
     delay(5);
 
     boolean groundValue = digitalRead(gndPin);
-    if (groundValue == 0)
-    {
+    if (groundValue == 0) {
       Serial.println(i);
       Serial.println("--> C.C with GROUND");
       Serial.println("");
@@ -336,8 +309,7 @@ boolean testCable()
   }
 
   // start pin test
-  for (byte i = 0; i < nPin; i += 2)
-  {
+  for (byte i = 0; i < nPin; i += 2) {
     // set pin out
     pinMode(pinSelect[i], OUTPUT);
     digitalWrite(pinSelect[i], LOW);
@@ -352,26 +324,20 @@ boolean testCable()
     byte j = 0;
 
     // read pin
-    for (byte x = 0; x < nPin; x++)
-    {
-      if (x == i)
-      {
+    for (byte x = 0; x < nPin; x++) {
+      if (x == i) {
         pinValue[i] = 1;
       }
-      else
-      {
+      else {
         pinValue[x] = digitalRead(pinSelect[x]);
       }
       // control multiple contacts
-      if (pinValue[x] == 0)
-      {
-        if (j < 2)
-        {
+      if (pinValue[x] == 0) {
+        if (j < 2) {
           finalValue[j][i] = x;
           j++;
         }
-        else
-        {
+        else {
           multipleContacts = true;
         }
       }
@@ -419,8 +385,7 @@ boolean testCable()
   Serial.println("--> TEST RESULT:");
   Serial.println("");
   Serial.println("Npin | pin A | pin B ");
-  for (byte i = 0; i < nPin; i += 2)
-  {
+  for (byte i = 0; i < nPin; i += 2) {
     Serial.print(i);
     if (i < 10)
       Serial.print("  | ");
@@ -436,16 +401,12 @@ boolean testCable()
   Serial.println("");
 
   // preliminary error check
-  for (byte i = 0; i < nPin; i += 2)
-  {
+  for (byte i = 0; i < nPin; i += 2) {
     // *** TEST IF PIN AFTER AND PIN BEFORE ARE CORRECT ***
-    if ((i == 0) && (finalValue[0][i] == (i + 1)) && (finalValue[1][i] == (nPin - 1)))
-    {
+    if ((i == 0) && (finalValue[0][i] == (i + 1)) && (finalValue[1][i] == (nPin - 1))) {
       //testResult = true;
-
     }
-    else if ((finalValue[0][i] == (i - 1)) && (finalValue[1][i] == (i + 1)))
-    {
+    else if ((finalValue[0][i] == (i - 1)) && (finalValue[1][i] == (i + 1))) {
       //testResult = true;
     }
     else {
@@ -454,12 +415,10 @@ boolean testCable()
   }
 
   // preliminary error check
-  if (multipleContacts == true)
-  {
+  if (multipleContacts == true) {
     testResult = false;
   }
-  else if (shortCircuitGnd != NOT_CONNECTED)
-  {
+  else if (shortCircuitGnd != NOT_CONNECTED) {
     testResult = false;
   }
 
@@ -467,11 +426,8 @@ boolean testCable()
 }
 // *** testVerify *** ==========================================================
 void displayError() {
-  for (byte i = 0; i < (nPin - 1); i += 2)
-  {
-
-    if ((finalValue[0][i] == NOT_CONNECTED) && (finalValue[1][i] == NOT_CONNECTED))
-    {
+  for (byte i = 0; i < (nPin - 1); i += 2) {
+    if ((finalValue[0][i] == NOT_CONNECTED) && (finalValue[1][i] == NOT_CONNECTED)) {
       Serial.print(i);
       Serial.print(" -> ");
       Serial.println("!");
@@ -484,16 +440,14 @@ void displayError() {
       printErrors(i, i, i);
     }
 
-    if (i == 0)
-    {
+    if (i == 0) {
       Serial.print(i + 1); // add one to read 1 to 50
       Serial.print(" -> ");
       Serial.println(finalValue[0][i]);
 
       printErrors(i + 1, finalValue[0][i], i + 1);
     }
-    else
-    {
+    else {
       Serial.print(i + 1);
       Serial.print(" -> ");
       Serial.println(finalValue[1][i]);
@@ -503,8 +457,7 @@ void displayError() {
   }
 }
 // *** printErrors *** =========================================================
-void printErrors(byte valueA, byte valueB, byte index)
-{
+void printErrors(byte valueA, byte valueB, byte index) {
   String convertToString;
   char printCharValueA[4];
   char printCharValueB[4];
@@ -514,58 +467,46 @@ void printErrors(byte valueA, byte valueB, byte index)
   convertToString = String(valueA);
   convertToString.toCharArray(printCharValueA, 4);
 
-  if (valueB == NOT_CONNECTED)
-  {
+  if (valueB == NOT_CONNECTED) {
     convertToString = String("!");
     convertToString.toCharArray(printCharValueB, 4);
   }
-  else
-  {
+  else {
     convertToString = String(valueB);
     convertToString.toCharArray(printCharValueB, 4);
   }
 
-  if (index == 0)
-  {
+  if (index == 0) {
     //
   }
-  else if (index < 10)
-  {
+  else if (index < 10) {
     y += index * 10;
   }
-  else if (index == 10)
-  {
+  else if (index == 10) {
     x *= 10;
   }
-  else if (index < 20)
-  {
+  else if (index < 20) {
     x *= 10;
     y += (index - 10) * 10;
   }
-  else if (index == 20)
-  {
+  else if (index == 20) {
     x *= 21;
   }
-  else if (index < 30)
-  {
+  else if (index < 30) {
     x *= 21;
     y += (index - 20) * 10;
   }
-  else if (index == 30)
-  {
+  else if (index == 30) {
     x *= 32;
   }
-  else if (index < 40)
-  {
+  else if (index < 40) {
     x *= 32;
     y += (index - 30) * 10;
   }
-  else if (index == 40)
-  {
+  else if (index == 40) {
     x *= 43;
   }
-  else if (index < 50)
-  {
+  else if (index < 50) {
     x *= 43;
     y += (index - 40) * 10;
   }
@@ -573,24 +514,19 @@ void printErrors(byte valueA, byte valueB, byte index)
   // print on lcd
   myScreen.text(printCharValueA, x, y);
 
-  if (valueA != valueB)
-  {
+  if (valueA != valueB) {
     myScreen.stroke(255, 0, 0);
   }
 
-  if (index < 10
-     ) {
-    if (valueA != valueB)
-    {
+  if (index < 10) {
+    if (valueA != valueB) {
       myScreen.stroke(255, 0, 0);
     }
     myScreen.text(">", x + 5, y);
     myScreen.text(printCharValueB, x + 11, y);
   }
-  else
-  {
-    if (valueA != valueB)
-    {
+  else {
+    if (valueA != valueB) {
       myScreen.stroke(255, 0, 0);
     }
     myScreen.text(">", x + 11, y);
@@ -600,8 +536,7 @@ void printErrors(byte valueA, byte valueB, byte index)
 
 
   // print gnd value
-  if (shortCircuitGnd != NOT_CONNECTED)
-  {
+  if (shortCircuitGnd != NOT_CONNECTED) {
     myScreen.stroke(255, 0, 0);
     myScreen.text("GND INSULATION: ERROR", 3, 103);
     char printCharValueC[4];
@@ -610,14 +545,12 @@ void printErrors(byte valueA, byte valueB, byte index)
     myScreen.text(printCharValueC, 135, 103);
     myScreen.stroke(0, 0, 0);
   }
-  else if (multipleContacts == true)
-  {
+  else if (multipleContacts == true) {
     myScreen.stroke(255, 0, 0);
     myScreen.text("MULTIPLE CONTACTS ERROR", 3, 103);
     myScreen.stroke(0, 0, 0);
   }
-  else
-  {
+  else {
     myScreen.text("GND INSULATION: OK", 3, 103);
   }
 }
