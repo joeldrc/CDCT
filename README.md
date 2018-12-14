@@ -1,17 +1,17 @@
 # Digital cable tester
 
+![Alt text](digital-cable-tester.jpg?raw=true "Digital cable tester")
+
 This is a simple device that can test the pin to pin connections and the isolation to ground of the connectors up to 50 pins.
 
 ## Details
 
 Using this tester it is easy to identify:
-	- connection problems; 
-	- inverted wires;
-	- short-circuits pin to pin or pin to ground.
+- connection problems; 
+- inverted wires;
+- short-circuits pin to pin or pin to ground.
 
-## Device images
-
-![Alt text](digital-cable-tester.jpg?raw=true "Digital cable tester")
+### Scheme
 
 ![Alt text](scheme.jpg?raw=true "Scheme")
 
