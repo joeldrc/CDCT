@@ -29,47 +29,54 @@
 #include <SPI.h>
 
 //define tft library
-#define CS     53 // Control slave select
-#define DC     58
-#define RESET  59
-#define BL     57
-#define LCDROTATION 3   //1 or 3
+static const uint8_t CS = 53;  // Control slave select
+static const uint8_t DC = 58;
+static const uint8_t RESET = 59;
+static const uint8_t BL = 57;
+static const uint8_t LCDROTATION = 3; //1 or 3
 
 TFT myScreen = TFT(CS, DC, RESET);
 
 //define pin test GND
-#define gndPin        62
+static const uint8_t gndPin = 62;
 
 //define pin button
-#define buttonA       54
-#define buttonB       55
-#define ledButtonA    56
+static const uint8_t buttonA = 54;
+static const uint8_t buttonB = 55;
+static const uint8_t ledButtonA = 56;
 
 // pin not connected ( number 99 == not connected)
-#define NOT_CONNECTED   99
+static const uint8_t NOT_CONNECTED = 99;
 
-// change when add multiple burndy connection
-//nuber pin's Burndy
-#define nPin          50
+// physical number of pins
+static const uint8_t nPin = 50; 
+
 
 // *** GLOBAL VARIABLE *** =====================================================
-//type of connector burndy 0 to 11
-uint8_t selectConnector = 11;
-//number of pin burndy possible to test
-uint8_t pinToTest[12] = {   2 , 4, 8,  12, 18, 19, 26, 27, 28, 48, 49, 50  };
+
+uint8_t selectConnector = 11;   //type of connector burndy 0 to 11
+uint8_t pinToTest[12] = {   2 , 4, 8, 12, 18, 19, 26, 27, 28, 48, 49, 50  };  //number of pin burndy possible to test
+
+// number of pins used during the test
+uint8_t nPinUsed = 50;
+
 //array to store pin value
-uint8_t pinSelect[50] = {   2, 22,  3, 23,  4, 24,  5, 25,  6, 26,   //pin Burndy  1-10
-                            7, 27,  8, 28,  9, 29, 10, 30, 11, 31,   //pin Burndy 11-20
+uint8_t pinSelect[50] = {   2, 22,  3, 23,  4, 24,  5, 25,  6, 26,    //pin Burndy  1-10
+                            7, 27,  8, 28,  9, 29, 10, 30, 11, 31,    //pin Burndy 11-20
                             12, 33, 13, 35, 14, 37, 15, 39, 16, 41,   //pin Burndy 21-30
                             17, 43, 18, 45, 19, 47, 20, 49, 21, 42,   //pin Burndy 31-40
                             32, 44, 34, 46, 36, 48, 38, 68, 40, 69    //pin Burndy 41-50
                         };
+                        
 //array to store pin value after digitalRead();
 boolean pinValue[nPin];
+
 //matrix for store final value
 uint8_t finalValue[2][nPin];
+
 //multiple contacts
 boolean multipleContacts = false;
+
 // short circuit to gnd if is to 0 to 49
 byte shortCircuitGnd = NOT_CONNECTED;
 
@@ -81,14 +88,18 @@ void setup(void) {
   //init button
   pinMode(buttonA, INPUT_PULLUP);
   pinMode(buttonB, INPUT_PULLUP);
+  
   //init pins
   pinMode(ledButtonA, OUTPUT);
   digitalWrite(ledButtonA, LOW);
+  
   // enable lcd tft
   pinMode(BL, OUTPUT);
   digitalWrite(BL, HIGH);
+  
   // init pin GND
   pinMode(gndPin, INPUT_PULLUP);
+  
   // init pin burndy
   for (byte i = 0; i < nPin; i++) {
     pinMode(pinSelect[i], INPUT_PULLUP);
@@ -99,7 +110,7 @@ void setup(void) {
   myScreen.setRotation(LCDROTATION);
   delay(1000);
 
-  Serial.println("DIGITAL CABLE TESTER V.1.0");
+  Serial.println("DIGITAL CABLE TESTER V.2.0");
   Serial.println("CERN, Geneva (CH)");
   Serial.println("Created by Joel Daricou");
   Serial.println("");
@@ -119,12 +130,16 @@ void setup(void) {
   myScreen.setTextSize(3);
   myScreen.text("CONNECT", 10, 20);
   myScreen.text("GROUND >", 10, 60);
+  
   // button
   buttonContinue();
+  
   // wait command
   inputEvent();
   delay(500);
 }
+
+
 // *** LOOP *** ================================================================
 void loop(void) {
   char printCharValue[4];
@@ -154,9 +169,11 @@ void loop(void) {
   myScreen.rect(81, 100, 77, 26);
   myScreen.text("TEST", 90, 106);
   // ----------------------------------------------------------------
-  // wait command
+  
+  // wait for command 
   // if you press the button A
   if (inputEvent()) {
+    
     // Test Page ----------------------------------------------------
     Serial.println("--> START CABLE TEST ");
     Serial.println("");
@@ -179,7 +196,7 @@ void loop(void) {
     // --------------------------------------------------------------
 
     // start test cable: if the test is ok
-    if (testCable()) {
+    if (testCable() == true) {
       Serial.println("-> TEST: OK");
       Serial.println("");
       // Test Page OK -------------------------------------------------
@@ -195,6 +212,7 @@ void loop(void) {
       // --------------------------------------------------------------
       delay(500);
     }
+    
     // if the test is bad
     else {
       Serial.println("-> TEST: ERROR");
@@ -249,6 +267,8 @@ void loop(void) {
     delay(500);
   }
 }
+
+
 // *** button continue *** =====================================================
 void buttonContinue(void) {
   Serial.println("--> CONTINUE ? (y/n)");
@@ -258,6 +278,8 @@ void buttonContinue(void) {
   myScreen.setTextSize(2);
   myScreen.text("CONTINUE", 34, 106);
 }
+
+
 // *** inputEvent* ** ==========================================================
 boolean inputEvent() {
   char commandData = 0;
@@ -274,6 +296,8 @@ boolean inputEvent() {
     }
   }
 }
+
+
 // *** testCable *** ===========================================================
 boolean testCable() {
   // initialize variables and pins
@@ -292,17 +316,16 @@ boolean testCable() {
   for (byte i = 0; i < nPin; i++) {
     pinMode(pinSelect[i], OUTPUT);
     digitalWrite(pinSelect[i], LOW);
-
     delay(5);
 
     boolean groundValue = digitalRead(gndPin);
+    
     if (groundValue == 0) {
       Serial.println(i);
       Serial.println("--> C.C with GROUND");
       Serial.println("");
       shortCircuitGnd = i;
     }
-
     delay(5);
 
     pinMode(pinSelect[i], INPUT_PULLUP);
@@ -353,7 +376,7 @@ boolean testCable() {
         Serial.println(" <--");
       else
         Serial.println("");
-
+        
       //delay(5);
     }
 
@@ -385,6 +408,7 @@ boolean testCable() {
   Serial.println("--> TEST RESULT:");
   Serial.println("");
   Serial.println("Npin | pin A | pin B ");
+  
   for (byte i = 0; i < nPin; i += 2) {
     Serial.print(i);
     if (i < 10)
@@ -424,9 +448,11 @@ boolean testCable() {
 
   return testResult;
 }
+
+
 // *** testVerify *** ==========================================================
 void displayError() {
-  for (byte i = 0; i < (nPin - 1); i += 2) {
+  for (uint8_t i = 0; i < (nPin - 1); i += 2) {
     if ((finalValue[0][i] == NOT_CONNECTED) && (finalValue[1][i] == NOT_CONNECTED)) {
       Serial.print(i);
       Serial.print(" -> ");
@@ -456,6 +482,8 @@ void displayError() {
     }
   }
 }
+
+
 // *** printErrors *** =========================================================
 void printErrors(byte valueA, byte valueB, byte index) {
   String convertToString;
@@ -554,4 +582,3 @@ void printErrors(byte valueA, byte valueB, byte index) {
     myScreen.text("GND INSULATION: OK", 3, 103);
   }
 }
-
