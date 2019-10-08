@@ -54,18 +54,15 @@ static const uint8_t nPin = 50;
 
 // *** GLOBAL VARIABLE *** =====================================================
 
-uint8_t selectConnector = 11;   //type of connector burndy 0 to 11
-uint8_t pinToTest[12] = {   2 , 4, 8, 12, 18, 19, 26, 27, 28, 48, 49, 50  };  //number of pin burndy possible to test
-
-// number of pins used during the test
-uint8_t nPinUsed = 50;
+uint8_t selectConnector = 0;        // type of connector burndy 0 to 11
+uint8_t pinToTest[2] = { 50, 48 };  // number of pin burndy possible to test
 
 //array to store pin value
-uint8_t pinSelect[50] = {   2, 22,  3, 23,  4, 24,  5, 25,  6, 26,    //pin Burndy  1-10
-                            7, 27,  8, 28,  9, 29, 10, 30, 11, 31,    //pin Burndy 11-20
-                            12, 33, 13, 35, 14, 37, 15, 39, 16, 41,   //pin Burndy 21-30
-                            17, 43, 18, 45, 19, 47, 20, 49, 21, 42,   //pin Burndy 31-40
-                            32, 44, 34, 46, 36, 48, 38, 68, 40, 69    //pin Burndy 41-50
+uint8_t pinSelect[50] = {   2, 22,  3, 23,  4, 24,  5, 25,  6, 26,    // pin Burndy  1-10
+                            7, 27,  8, 28,  9, 29, 10, 30, 11, 31,    // pin Burndy 11-20
+                            12, 33, 13, 35, 14, 37, 15, 39, 16, 41,   // pin Burndy 21-30
+                            17, 43, 18, 45, 19, 47, 20, 49, 21, 42,   // pin Burndy 31-40
+                            32, 44, 34, 46, 36, 48, 38, 68, 40, 69    // pin Burndy 41-50
                         };
                         
 //array to store pin value after digitalRead();
@@ -256,13 +253,11 @@ void loop(void) {
   }
   else {
     // change the number of pin to test
-    if (selectConnector < 11) {
-      // for now not enabled
-      //selectConnector += 1;
+    if (selectConnector < 1) {
+      selectConnector += 1;
     }
     else {
-      // for now not enabled
-      //selectConnector = 0;
+      selectConnector = 0;
     }
     delay(500);
   }
@@ -305,7 +300,7 @@ boolean testCable() {
   multipleContacts = false;
   shortCircuitGnd = NOT_CONNECTED;
 
-  for (byte i = 0; i < nPin; i++) {
+  for (byte i = 0; i < pinToTest[selectConnector]; i++) {
     finalValue[0][i] = NOT_CONNECTED;
     finalValue[1][i] = NOT_CONNECTED;
     pinValue[i] = 1;
@@ -313,7 +308,7 @@ boolean testCable() {
   }
 
   // test ground insulation
-  for (byte i = 0; i < nPin; i++) {
+  for (byte i = 0; i < pinToTest[selectConnector]; i++) {
     pinMode(pinSelect[i], OUTPUT);
     digitalWrite(pinSelect[i], LOW);
     delay(5);
@@ -332,7 +327,7 @@ boolean testCable() {
   }
 
   // start pin test
-  for (byte i = 0; i < nPin; i += 2) {
+  for (byte i = 0; i < pinToTest[selectConnector]; i += 2) {
     // set pin out
     pinMode(pinSelect[i], OUTPUT);
     digitalWrite(pinSelect[i], LOW);
@@ -347,7 +342,7 @@ boolean testCable() {
     byte j = 0;
 
     // read pin
-    for (byte x = 0; x < nPin; x++) {
+    for (byte x = 0; x < pinToTest[selectConnector]; x++) {
       if (x == i) {
         pinValue[i] = 1;
       }
@@ -409,7 +404,7 @@ boolean testCable() {
   Serial.println("");
   Serial.println("Npin | pin A | pin B ");
   
-  for (byte i = 0; i < nPin; i += 2) {
+  for (byte i = 0; i < pinToTest[selectConnector]; i += 2) {
     Serial.print(i);
     if (i < 10)
       Serial.print("  | ");
@@ -425,9 +420,9 @@ boolean testCable() {
   Serial.println("");
 
   // preliminary error check
-  for (byte i = 0; i < nPin; i += 2) {
+  for (byte i = 0; i < pinToTest[selectConnector]; i += 2) {
     // *** TEST IF PIN AFTER AND PIN BEFORE ARE CORRECT ***
-    if ((i == 0) && (finalValue[0][i] == (i + 1)) && (finalValue[1][i] == (nPin - 1))) {
+    if ((i == 0) && (finalValue[0][i] == (i + 1)) && (finalValue[1][i] == (pinToTest[selectConnector] - 1))) {
       //testResult = true;
     }
     else if ((finalValue[0][i] == (i - 1)) && (finalValue[1][i] == (i + 1))) {
@@ -452,7 +447,7 @@ boolean testCable() {
 
 // *** testVerify *** ==========================================================
 void displayError() {
-  for (uint8_t i = 0; i < (nPin - 1); i += 2) {
+  for (uint8_t i = 0; i < (pinToTest[selectConnector] - 1); i += 2) {
     if ((finalValue[0][i] == NOT_CONNECTED) && (finalValue[1][i] == NOT_CONNECTED)) {
       Serial.print(i);
       Serial.print(" -> ");
